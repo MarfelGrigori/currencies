@@ -14,7 +14,6 @@ import com.example.currencyapplication.common.usecases.delete_currency.DeleteCur
 import com.example.currencyapplication.common.usecases.load_all_curencies.LoadCurrencyUseCase
 import com.example.currencyapplication.common.usecases.load_favorites.LoadFavoriteCurrenciesUseCase
 import com.example.currencyapplication.common.utils.UiText
-import com.example.currencyapplication.common.utils.displayRate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -43,7 +42,7 @@ class CurrenciesViewModel @Inject constructor(
     private val _currency = MutableStateFlow<List<CurrencyItem>>(emptyList())
     val currency: StateFlow<List<CurrencyItem>> = _currency
 
-    private val _selectedSorting  = sortingPreferences.sortingOrder
+    private val _selectedSorting = sortingPreferences.sortingOrder
         .stateIn(viewModelScope, SharingStarted.Eagerly, SortingOption.CodeAZ)
 
     private val errorChannel = Channel<UiText>()
@@ -52,7 +51,10 @@ class CurrenciesViewModel @Inject constructor(
     fun load(base: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val favoriteCurrenciesDeferred = async { loadFavoriteCurrenciesUseCase.loadCurrencies() }
+
+                val favoriteCurrenciesDeferred =
+                    async { loadFavoriteCurrenciesUseCase.loadCurrencies() }
+
                 val allCurrenciesDeferred = async { retry { loadCurrencyUseCase("", base) } }
 
                 val favoriteCurrencies = favoriteCurrenciesDeferred.await()
@@ -71,13 +73,29 @@ class CurrenciesViewModel @Inject constructor(
 
                 _currency.value = list
                 sortCurrencyList()
-            }catch (e: SocketTimeoutException) {
-                Log.e("TAG", "Network request timed out: ${e.message}")
-                errorChannel.send(UiText.StringResource(resId = R.string.network_timour))
+
+            } catch (e: Exception) {
+                handleLoadError(e)
             }
-            catch (e: Exception) {
-                Log.e("TAG", e.toString())
-                errorChannel.send(UiText.StringResource(resId = R.string.unknown_error))
+        }
+    }
+
+    private fun handleLoadError(e: Exception) {
+        when (e) {
+            is HttpException -> {
+                val errorMessage = if (e.code() == 429) {
+                    UiText.StringResource(resId = R.string.network_error_too_many_requests)
+                } else {
+                    UiText.StringResource(resId = R.string.network_error)
+                }
+                errorChannel.trySend(errorMessage)
+            }
+            is SocketTimeoutException -> {
+                errorChannel.trySend(UiText.StringResource(resId = R.string.network_timout))
+            }
+            else -> {
+                Log.e("TAG", "Unknown error: ${e.message}")
+                errorChannel.trySend(UiText.StringResource(resId = R.string.unknown_error))
             }
         }
     }
@@ -118,16 +136,24 @@ class CurrenciesViewModel @Inject constructor(
             try {
                 return block()
             } catch (e: HttpException) {
-                Log.e("TAG", "HTTP ${e.code()}, retrying in ${delayMillis / 1000} seconds... Attempt ${attempt + 1}/$maxRetries")
+                Log.e(
+                    "TAG",
+                    "HTTP ${e.code()}, retrying in ${delayMillis / 1000} seconds... Attempt ${attempt + 1}/$maxRetries"
+                )
                 if (attempt == maxRetries - 1) {
                     val errorMessage =
-                        if (e.code() == 429) {UiText.StringResource(
-                            resId = R.string.network_error_too_many_requests
-                        )}
-                        else throw Exception("error network")
+                        if (e.code() == 429) {
+                            UiText.StringResource(
+                                resId = R.string.network_error_too_many_requests
+                            )
+                        } else UiText.StringResource(
+                            resId = R.string.network_error
+                        )
                     errorChannel.send(errorMessage)
                 }
                 delay(delayMillis)
+            } catch (e: Exception) {
+                handleLoadError(e)
             }
         }
         return emptyList()

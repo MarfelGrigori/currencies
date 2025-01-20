@@ -12,7 +12,7 @@
     <string name="favorites">Favorites</string>
     <string name="network_error">Network error</string>
     <string name="unknown_error">An error occurred</string>
-    <string name="network_timour">Network timeout</string>
+    <string name="network_timout">Network timeout</string>
     <string name="network_error_too_many_requests">Used API has restriction using requests.
         Seems like you ran out of your resource API calls</string>
 </resources>
