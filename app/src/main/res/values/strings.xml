@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Currency Application</string>
+    <string name="filters">Filters</string>
+    <string name="sort_by">SORT BY</string>
+    <string name="code_a_z">Code A-Z</string>
+    <string name="code_z_a">Code Z-A</string>
+    <string name="quote_asc">Quote Asc.</string>
+    <string name="quote_desc">Quote Desc.</string>
+    <string name="apply">Apply</string>
+    <string name="back">Back</string>
+    <string name="currencies">Currencies</string>
+    <string name="favorites">Favorites</string>
+    <string name="network_error">Network error</string>
+    <string name="unknown_error">An error occurred</string>
+    <string name="network_error_too_many_requests">Used API has restriction using requests.
+        Seems like you ran out of your resource API calls</string>
+</resources>
