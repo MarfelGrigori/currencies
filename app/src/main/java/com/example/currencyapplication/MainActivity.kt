@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.example.currencyapplication.common.navigation.CurrencyApp
+import com.example.currencyapplication.common.navigation.CurrencyAppNavigation
 import com.example.currencyapplication.common.ui.theme.CurrencyApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CurrencyApp(navController)
+                    CurrencyAppNavigation(navController)
                 }
             }
         }

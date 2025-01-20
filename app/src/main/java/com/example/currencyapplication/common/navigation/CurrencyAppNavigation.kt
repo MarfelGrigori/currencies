@@ -15,7 +15,7 @@ import com.example.currencyapplication.main_screen.ui.CurrenciesScreen
 import com.example.currencyapplication.sorting_screen.ui.SortingScreen
 
 @Composable
-fun CurrencyApp(navController: NavHostController) {
+fun CurrencyAppNavigation(navController: NavHostController) {
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
