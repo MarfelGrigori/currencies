@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,7 +71,11 @@ class CurrenciesViewModel @Inject constructor(
 
                 _currency.value = list
                 sortCurrencyList()
-            } catch (e: Exception) {
+            }catch (e: SocketTimeoutException) {
+                Log.e("TAG", "Network request timed out: ${e.message}")
+                errorChannel.send(UiText.StringResource(resId = R.string.network_timour))
+            }
+            catch (e: Exception) {
                 Log.e("TAG", e.toString())
                 errorChannel.send(UiText.StringResource(resId = R.string.unknown_error))
             }
@@ -116,10 +121,10 @@ class CurrenciesViewModel @Inject constructor(
                 Log.e("TAG", "HTTP ${e.code()}, retrying in ${delayMillis / 1000} seconds... Attempt ${attempt + 1}/$maxRetries")
                 if (attempt == maxRetries - 1) {
                     val errorMessage =
-                        if (e.code() == 429) UiText.StringResource(
+                        if (e.code() == 429) {UiText.StringResource(
                             resId = R.string.network_error_too_many_requests
-                        )
-                        else UiText.StringResource(resId = R.string.network_error)
+                        )}
+                        else throw Exception("error network")
                     errorChannel.send(errorMessage)
                 }
                 delay(delayMillis)
